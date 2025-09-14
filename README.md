@@ -190,12 +190,12 @@ python -m pytest tests/test_data_*.py    # Test data processing
 
 ## 🔗 Important Links
 
-- 🔗 **GitHub Repository**: [StockPulse Repository](https://github.com/yourusername/StockPulse)
+- 🔗 **GitHub Repository**: [StockPulse Repository](https://github.com/Anas-Furqan/StockPulse/)
 - 📝 **Blog Post**: [StockPulse - AI-Powered Stock Market Analysis](https://stockpuletechwiz.blogspot.com/2025/09/stock-pulse.html)
 - 📊 **Tableau Visualizations**: 
   - [Anomalies Dashboard](https://public.tableau.com/app/profile/adil.sattar3973/viz/Anomalies_17578452410780/anomalies?publish=yes)
   - [Overview Dashboard](https://public.tableau.com/app/profile/adil.sattar3973/viz/Anomalies_17578452410780/over-review?publish=yes)
-- 🎥 **Project Demo**: [Watch Demo](your-demo-link-here)
+- 🎥 **Project Demo**: [Watch Demo](https://stockpulsetechwiz.streamlit.app/)
 
 ## 🤝 Contributing
 
