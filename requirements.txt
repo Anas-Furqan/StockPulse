@@ -15,7 +15,7 @@ torch
 shap
 tsfresh
 statsmodels
-pandas-profiling
+ydata-profiling
 xlrd
 openpyxl
 tensorflow
