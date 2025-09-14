@@ -75,7 +75,7 @@ class DataLoader:
         Returns:
             Tuple of (DataFrame, list of validation warnings)
         """
-        # Determine file type and load accordingly
+        
         if file_path.endswith('.csv'):
             df = self.load_csv(file_path)
         elif file_path.endswith(('.xls', '.xlsx')):
@@ -83,7 +83,7 @@ class DataLoader:
         else:
             raise ValueError("Unsupported file format. Please upload a CSV or Excel file.")
         
-        # Validate the DataFrame
+        
         warnings = validate_dataframe(df)
         
         return df, warnings

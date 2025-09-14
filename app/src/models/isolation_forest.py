@@ -44,12 +44,29 @@ class IsolationForestModel(BaseAnomalyModel):
         if feature_columns is None:
             feature_columns = df.select_dtypes(include=[np.number]).columns.tolist()
         
+        # Validate data and feature columns
+        if len(df) == 0:
+            raise ValueError("DataFrame is empty. Cannot fit model on empty data.")
+            
+        if len(feature_columns) == 0:
+            raise ValueError("No feature columns provided or found. Cannot fit model without features.")
+            
+        # Check if feature columns exist in the DataFrame
+        missing_cols = [col for col in feature_columns if col not in df.columns]
+        if missing_cols:
+            raise ValueError(f"Feature columns {missing_cols} not found in DataFrame.")
+            
+        # Check if we have enough data after removing NaN values
+        df_features = df[feature_columns].dropna()
+        if len(df_features) == 0:
+            raise ValueError("All rows contain NaN values for the selected features.")
+        
         # Store feature columns for prediction
         self.feature_columns = feature_columns
         
         # Create and fit the model
         self.model = SklearnIsolationForest(**self.params)
-        self.model.fit(df[feature_columns])
+        self.model.fit(df_features)
         
         return self
     
@@ -66,11 +83,30 @@ class IsolationForestModel(BaseAnomalyModel):
         if self.model is None:
             raise ValueError("Model has not been trained yet")
         
+        # Validate input data
+        if len(df) == 0:
+            raise ValueError("Cannot predict on empty DataFrame")
+            
+        # Check if feature columns exist in the DataFrame
+        missing_cols = [col for col in self.feature_columns if col not in df.columns]
+        if missing_cols:
+            raise ValueError(f"Feature columns {missing_cols} not found in DataFrame")
+        
         # Make a copy of the input DataFrame
         result_df = df.copy()
         
+        # Handle missing values by filling with mean or 0
+        df_features = df[self.feature_columns].copy()
+        for col in self.feature_columns:
+            if df_features[col].isna().any():
+                # Fill with mean if possible, otherwise use 0
+                if not df_features[col].isna().all():
+                    df_features[col] = df_features[col].fillna(df_features[col].mean())
+                else:
+                    df_features[col] = df_features[col].fillna(0)
+        
         # Get anomaly scores (-1 for anomalies, 1 for normal)
-        raw_scores = self.model.predict(df[self.feature_columns])
+        raw_scores = self.model.predict(df_features)
         
         # Convert to anomaly scores (higher means more anomalous)
         # Isolation Forest returns -1 for anomalies and 1 for normal points
@@ -78,10 +114,15 @@ class IsolationForestModel(BaseAnomalyModel):
         anomaly_scores = np.where(raw_scores == -1, 1, 0)
         
         # Get decision function scores (negative means more anomalous)
-        decision_scores = self.model.decision_function(df[self.feature_columns])
+        decision_scores = self.model.decision_function(df_features)
         
         # Convert to anomaly scores (higher means more anomalous)
-        normalized_scores = 1 - (decision_scores - np.min(decision_scores)) / (np.max(decision_scores) - np.min(decision_scores))
+        # Handle the case where all scores are the same
+        score_range = np.max(decision_scores) - np.min(decision_scores)
+        if score_range > 0:
+            normalized_scores = 1 - (decision_scores - np.min(decision_scores)) / score_range
+        else:
+            normalized_scores = np.zeros_like(decision_scores)
         
         # Add results to DataFrame
         result_df['anomaly_score'] = normalized_scores

@@ -7,7 +7,7 @@ import os
 class BaseAnomalyModel:
     """
     Base class for anomaly detection models.
-    """
+    """ 
     
     def __init__(self, name: str, params: Dict[str, Any] = None):
         """

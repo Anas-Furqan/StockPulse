@@ -41,13 +41,13 @@ class DataFetcher:
                     progress=False
                 )
                 
-                # Reset index to make Date a column
+                
                 data.reset_index(inplace=True)
                 
-                # Add ticker column
+                
                 data['Symbol'] = ticker
                 
-                # Ensure column names are consistent
+                
                 data.columns = [col if col != 'Adj Close' else 'Adj_Close' for col in data.columns]
                 
                 result[ticker] = data
@@ -87,17 +87,17 @@ class DataFetcher:
                 else:
                     raise ValueError(f"Unsupported interval: {interval}")
                 
-                # Rename columns to match our canonical format
+                
                 data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
                 
-                # Add Adj_Close (same as Close for Alpha Vantage)
+                
                 data['Adj_Close'] = data['Close']
                 
-                # Reset index to make Date a column
+                
                 data.reset_index(inplace=True)
                 data.rename(columns={'index': 'Date'}, inplace=True)
                 
-                # Add ticker column
+                
                 data['Symbol'] = ticker
                 
                 result[ticker] = data
@@ -117,7 +117,7 @@ class DataFetcher:
         Returns:
             DataFrame with standardized columns
         """
-        # Determine file type and read accordingly
+        
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
         elif file_path.endswith(('.xls', '.xlsx')):
@@ -125,11 +125,11 @@ class DataFetcher:
         else:
             raise ValueError("Unsupported file format. Please upload a CSV or Excel file.")
         
-        # If no column mapping provided, try to infer
+        
         if column_mapping is None:
             column_mapping = self._infer_column_mapping(df)
         
-        # Apply column mapping
+        
         df_mapped = self._apply_column_mapping(df, column_mapping)
         
         return df_mapped
@@ -144,7 +144,7 @@ class DataFetcher:
         Returns:
             Dictionary mapping DataFrame columns to canonical columns
         """
-        # Define canonical columns and their possible synonyms (case-insensitive)
+        
         canonical_columns = {
             'Date': ['date', 'timestamp', 'time', 'datetime'],
             'Open': ['open', 'opening', 'open_price'],
@@ -156,20 +156,20 @@ class DataFetcher:
             'Symbol': ['symbol', 'ticker', 'stock', 'asset']
         }
         
-        # Initialize mapping
+        
         column_mapping = {}
         
-        # Convert DataFrame columns to lowercase for case-insensitive matching
+        
         df_columns_lower = {col.lower(): col for col in df.columns}
         
-        # Try to match each canonical column
+        
         for canonical_col, synonyms in canonical_columns.items():
-            # First, check for exact match
+            
             if canonical_col.lower() in df_columns_lower:
                 column_mapping[canonical_col] = df_columns_lower[canonical_col.lower()]
                 continue
             
-            # Then check for synonyms
+            
             for synonym in synonyms:
                 if synonym in df_columns_lower:
                     column_mapping[canonical_col] = df_columns_lower[synonym]
@@ -188,22 +188,22 @@ class DataFetcher:
         Returns:
             DataFrame with standardized columns
         """
-        # Create a new DataFrame with mapped columns
+        
         df_mapped = pd.DataFrame()
         
-        # Copy mapped columns
+        
         for canonical_col, df_col in column_mapping.items():
             if df_col in df.columns:
                 df_mapped[canonical_col] = df[df_col]
         
-        # Handle missing required columns
+        
         required_columns = ['Date', 'Open', 'High', 'Low', 'Close']
         missing_columns = [col for col in required_columns if col not in df_mapped.columns]
         
         if missing_columns:
             raise ValueError(f"Missing required columns: {', '.join(missing_columns)}")
         
-        # Handle optional columns
+        
         if 'Adj_Close' not in df_mapped.columns and 'Close' in df_mapped.columns:
             df_mapped['Adj_Close'] = df_mapped['Close']
         
@@ -213,10 +213,10 @@ class DataFetcher:
         if 'Symbol' not in df_mapped.columns:
             df_mapped['Symbol'] = 'UNKNOWN'
         
-        # Ensure Date is in the correct format
+        
         df_mapped['Date'] = pd.to_datetime(df_mapped['Date'])
         
-        # Sort by Date
+        
         df_mapped.sort_values('Date', inplace=True)
         
         return df_mapped
